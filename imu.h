@@ -1,3 +1,5 @@
+//Created and tested by Adam Fielding
+
 #include <Arduino.h>
 
 #define IMUSerial Serial2
