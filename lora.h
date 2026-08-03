@@ -5,11 +5,13 @@ class lora {
   private:
     struct __attribute__((packed)) dataFormat {
       uint32_t time;      
-      float temp; 
+      float temp;
       float ph;
-      double lat;
-      double lon;        
-      bool atWaypoint;    
+      double lat; //gnss
+      double lon; //gnss
+      double heading; //imu       
+      bool atWaypoint;  
+      bool waterCollectionSystem;  
       uint8_t checksum; 
     };
 
@@ -41,7 +43,7 @@ class lora {
     // Pass Serial1, Serial2, etc.
     lora(HardwareSerial &serialPort, Timer& t_);
 
-    void updateDataToSend(float temp, float ph, double lat, double lon, bool atWaypoint);
+    void updateDataToSend(float temp, float ph, double lat, double lon, double heading, bool atWaypoint, bool waterCollectionSystem);
     void transmitData();
     void recvWithChecksum();
     void showNewData();
@@ -53,7 +55,7 @@ lora::lora(HardwareSerial &serialPort, Timer& t_) {
   mTimer = &t_;
 }
 
-void lora::updateDataToSend(float temp, float ph, double lat, double lon, bool atWaypoint) {
+void lora::updateDataToSend(float temp, float ph, double lat, double lon, double heading, bool atWaypoint, bool waterCollectionSystem) {
     if (millis() - prevUpdateTime >= updateInterval) {
         prevUpdateTime = millis();
         data.time = mTimer->read();
@@ -61,7 +63,9 @@ void lora::updateDataToSend(float temp, float ph, double lat, double lon, bool a
         data.ph = ph;
         data.lat = lat;
         data.lon = lon;
-        data.atWaypoint = atWaypoint;
+        data.heading = heading;
+        data.atWaypoint = atWaypoint; 
+        data.waterCollectionSystem = waterCollectionSystem;
         data.checksum = calculateChecksum(data); // Compute before sending
         newTxData = true;
     }
@@ -98,17 +102,22 @@ void lora::recvWithChecksum() {
 
 void lora::showNewData() {
       if (newData == true) {
-            Serial.print(data.time);
-            Serial.print(' ');
-            Serial.print(data.temp);
-            Serial.print(' ');
-            Serial.print(data.ph);
-            Serial.print(' ');
-            Serial.print(data.lat);
-            Serial.print(' ');
-            Serial.print(data.lon);
-            Serial.print(' ');
-            Serial.println(data.atWaypoint);
+        Serial.print(data.time);
+        Serial.print(' ');
+        Serial.print(data.temp);
+        Serial.print(' ');
+        Serial.print(data.ph);
+        Serial.print(' ');
+        Serial.print(data.lat);
+        Serial.print(' ');
+        Serial.print(data.lon);
+        Serial.print(' ');
+        Serial.print(data.heading);
+        Serial.print(' ');        
+        Serial.print(data.atWaypoint);
+        Serial.print(' ');
+        Serial.println(data.waterCollectionSystem);
+            
         newData = false;
       }
 }
